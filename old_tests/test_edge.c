@@ -30,7 +30,7 @@ int write_proc(const char *command) {
 
 int test_nonexistent_pid() {
     printf("\n%s=== Test 1: Non-existent PID ===%s\n", YELLOW, RESET);
-    int result = write_proc("X 9999 5");
+    int result = write_proc("A 9999 5");
     test_result("Set priority for non-existent PID", result == 0);
     sleep(1);
     return 1;
@@ -55,15 +55,15 @@ int test_empty_queue() {
 
 int test_priority_boundaries() {
     printf("\n%s=== Test 4: Priority Boundaries ===%s\n", YELLOW, RESET);
-    write_proc("S 3001 0");
+    write_proc("T 3001 0");
     test_result("Create task with priority 0", 1);
     sleep(1);
     
-    write_proc("S 3002 99");
+    write_proc("T 3002 99");
     test_result("Create task with priority 99", 1);
     sleep(1);
     
-    write_proc("S 3003 -5");
+    write_proc("T 3003 -5");
     test_result("Create task with negative priority", 1);
     sleep(1);
     
@@ -72,15 +72,15 @@ int test_priority_boundaries() {
 
 int test_message_priority_threshold() {
     printf("\n%s=== Test 5: Message Priority Threshold ===%s\n", YELLOW, RESET);
-    write_proc("S 3004 4 BelowThreshold");
+    write_proc("B 3004 4 BelowThreshold");
     test_result("Send message with priority 4 (normal)", 1);
     sleep(1);
     
-    write_proc("S 3005 5 AtThreshold");
+    write_proc("B 3005 5 AtThreshold");
     test_result("Send message with priority 5 (high)", 1);
     sleep(1);
     
-    write_proc("S 3006 6 AboveThreshold");
+    write_proc("B 3006 6 AboveThreshold");
     test_result("Send message with priority 6 (high)", 1);
     sleep(1);
     
@@ -116,10 +116,10 @@ int test_rapid_operations() {
 
 int test_message_ordering() {
     printf("\n%s=== Test 8: Message Priority Ordering ===%s\n", YELLOW, RESET);
-    write_proc("S 5001 2 Normal1");
-    write_proc("S 5002 8 High1");
-    write_proc("S 5003 3 Normal2");
-    write_proc("S 5004 10 High2");
+    write_proc("B 5001 2 Normal1");
+    write_proc("B 5002 8 High1");
+    write_proc("B 5003 3 Normal2");
+    write_proc("B 5004 10 High2");
     sleep(1);
     
     printf("  Receiving messages (high priority should come first):\n");

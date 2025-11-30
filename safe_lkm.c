@@ -215,6 +215,7 @@ static ssize_t proc_write(struct file *file, const char __user *buf,
 static const struct proc_ops proc_fops = {
     .proc_read = proc_read,
     .proc_write = proc_write,
+    .proc_lseek = default_llseek,
 };
 
 // ---------------------------------------------------------------------------
