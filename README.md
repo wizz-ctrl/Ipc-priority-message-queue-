@@ -3,11 +3,11 @@
 **Assignment 2 — Operating Systems Fall 2025**  
 **Group Assignment - Option B**
 
-## 📋 Overview
+## Overview
 
 This project implements a **safe, educational kernel module** that demonstrates an **Advanced Inter-Process Communication (IPC) mechanism** with priority-based message queuing. The module does not modify the actual Linux kernel and provides a complete, working implementation of:
 
-### ✨ Key Features
+### Key Features
 
 - **Dual Priority Queues**: Separate high and normal priority message queues
 - **Priority-Based Delivery**: High priority messages (type ≥ 5) delivered first
@@ -18,19 +18,19 @@ This project implements a **safe, educational kernel module** that demonstrates 
 
 ---
 
-## 🎯 What This Module Does
+## What This Module Does
 
 ### IPC Priority Message Queue (Option B)
-- ✅ Send messages with custom priority levels (0-255)
-- ✅ Automatic priority classification (HIGH: type ≥5, NORMAL: type <5)
-- ✅ Guaranteed priority-based message retrieval
-- ✅ Thread-safe concurrent operations
-- ✅ Comprehensive kernel logging
-- ✅ Clean resource management
+- Send messages with custom priority levels (0-255)
+- Automatic priority classification (HIGH: type ≥5, NORMAL: type <5)
+- Guaranteed priority-based message retrieval
+- Thread-safe concurrent operations
+- Comprehensive kernel logging
+- Clean resource management
 
 ---
 
-## 🛠️ Project Structure
+## Project Structure
 
 ```
 os-assignment2/
@@ -46,7 +46,7 @@ os-assignment2/
 
 ---
 
-## 📦 Prerequisites
+## Prerequisites
 
 ### Required Packages
 ```bash
@@ -69,7 +69,7 @@ gcc --version
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ### 1. Compile the Kernel Module
 ```bash
@@ -108,7 +108,7 @@ cat /proc/safe_lkm
 
 ---
 
-## 🧪 Testing
+##  Testing
 
 ### Compile Tests
 ```bash
@@ -221,7 +221,7 @@ sudo rmmod safe_lkm
 
 ---
 
-## 🔍 Implementation Details
+##  Implementation Details
 
 ### Data Structures
 
@@ -256,37 +256,37 @@ struct demo_msg {
 
 ---
 
-## 📊 Test Coverage
+##  Test Coverage
 
 ### Basic Tests (test_basic.c)
-1. ✅ Create task
-2. ✅ Set priority
-3. ✅ Send message
-4. ✅ Receive message
-5. ✅ Migrate process
-6. ✅ Read status
+1. Create task
+2. Set priority
+3. Send message
+4. Receive message
+5. Migrate process
+6. Read status
 
 ### Edge Case Tests (test_edge.c)
-1. ✅ Non-existent PID handling
-2. ✅ Invalid command handling
-3. ✅ Empty queue operations
-4. ✅ Priority boundaries (0, 99, negative)
-5. ✅ Message priority threshold (4, 5, 6)
-6. ✅ Long message truncation
-7. ✅ Rapid operations
-8. ✅ Message priority ordering
+1. Non-existent PID handling
+2. Invalid command handling
+3. Empty queue operations
+4. Priority boundaries (0, 99, negative)
+5. Message priority threshold (4, 5, 6)
+6. Long message truncation
+7. Rapid operations
+8. Message priority ordering
 
 ### Stress Tests (test_stress.c)
-1. ✅ 100 task creations
-2. ✅ 100 message sends
-3. ✅ Bulk message receives
-4. ✅ 50 priority changes
-5. ✅ 200 mixed operations
-6. ✅ 50 concurrent reads
+1. 100 task creations
+2. 100 message sends
+3. Bulk message receives
+4. 50 priority changes
+5. 200 mixed operations
+6. 50 concurrent reads
 
 ---
 
-## 🐛 Debugging
+##  Debugging
 
 ### View Kernel Logs
 ```bash
@@ -342,7 +342,7 @@ sudo insmod safe_lkm.ko
 
 ---
 
-## 🧹 Cleanup
+##  Cleanup
 
 ### Unload Module
 ```bash
@@ -363,7 +363,7 @@ ls /proc/safe_lkm      # Should not exist
 
 ---
 
-## 📚 Educational Value
+##  Educational Value
 
 ### What This Module Teaches
 
@@ -399,57 +399,52 @@ ls /proc/safe_lkm      # Should not exist
 
 ---
 
-## ⚠️ Safety Notes
+##  Safety Notes
 
 This module is **SAFE** because it:
-- ✅ Does NOT modify kernel source code
-- ✅ Does NOT hook into scheduler functions
-- ✅ Does NOT affect real system processes
-- ✅ Only simulates OS concepts in isolated data structures
-- ✅ Can be loaded/unloaded without system restart
-- ✅ Cleans up all resources on unload
+- Does NOT modify kernel source code
+- Does NOT hook into scheduler functions
+- Does NOT affect real system processes
+- Only simulates OS concepts in isolated data structures
+- Can be loaded/unloaded without system restart
+- Cleans up all resources on unload
 
 **This is a demonstration module for educational purposes only.**
 
 ---
 
-## 🎓 Assignment Requirements
+##  Assignment Requirements
 
 ### What's Implemented
-- ✅ All three options (A, B, C) in one module
-- ✅ Kernel module compilation and loading
-- ✅ Proper synchronization (spinlocks)
-- ✅ Memory management (no leaks)
-- ✅ User interface via /proc
-- ✅ Comprehensive testing suite
-- ✅ Detailed documentation
+- All three options (A, B, C) in one module
+- Kernel module compilation and loading
+- Proper synchronization (spinlocks)
+- Memory management (no leaks)
+- User interface via /proc
+- Comprehensive testing suite
+- Detailed documentation
 
 ### Testing Evidence
-- ✅ Basic functionality tests
-- ✅ Edge case handling
-- ✅ Stress/performance tests
-- ✅ Kernel log outputs
-- ✅ Status reporting
+- Basic functionality tests
+- Edge case handling
+- Stress/performance tests
+- Kernel log outputs
+- Status reporting
 
 ---
 
-## 👥 Group Information
 
-**Assignment**: OS Fall 2025 - Assignment 2  
-**Type**: Group Assignment  
-**Module**: Safe Kernel Module Demo  
-**Date**: November 2025
 
 ---
 
-## 📄 License
+## License
 
 GPL (GNU General Public License)  
 Educational use only.
 
 ---
 
-## 🔗 References
+## References
 
 - Linux Kernel Module Programming Guide
 - Linux Device Drivers, 3rd Edition
@@ -458,7 +453,7 @@ Educational use only.
 
 ---
 
-## 📞 Support
+##  Support
 
 For issues or questions:
 1. Check `dmesg` for kernel logs
