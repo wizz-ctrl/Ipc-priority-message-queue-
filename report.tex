@@ -1,0 +1,408 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{fancyhdr}
+
+% Code listing style
+\lstset{
+    basicstyle=\ttfamily\small,
+    breaklines=true,
+    frame=single,
+    backgroundcolor=\color{gray!10},
+    keywordstyle=\color{blue},
+    commentstyle=\color{green!60!black},
+    stringstyle=\color{red}
+}
+
+% Header and footer
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{Operating Systems - Assignment 2}
+\lhead{Option B: Advanced IPC Mechanism}
+\rfoot{Page \thepage}
+
+\begin{document}
+
+% Title Page
+\begin{titlepage}
+    \centering
+    \vspace*{2cm}
+    
+    {\LARGE\bfseries Operating Systems\\Assignment 2 Report\par}
+    \vspace{1.5cm}
+    
+    {\Large Advanced IPC Mechanism\\Priority Message Queue\par}
+    \vspace{0.5cm}
+    {\large (Option B)\par}
+    \vspace{2cm}
+    
+    {\large Course: Operating Systems\par}
+    {\large Institution: SEECS, NUST\par}
+    {\large Semester: Fall 2025\par}
+    \vspace{2cm}
+    
+    {\large Date: November 30, 2025\par}
+    
+    \vfill
+\end{titlepage}
+
+\tableofcontents
+\newpage
+
+\section{Setup Guide}
+
+\subsection{Development Environment}
+
+\subsubsection{Operating System and Kernel}
+The implementation was developed and tested on the following platform:
+
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Operating System:} Ubuntu 24.04 LTS (Long Term Support)
+    \item \textbf{Kernel Version:} Linux 6.14.0-35-generic
+    \item \textbf{Architecture:} x86\_64 (64-bit)
+\end{itemize}
+
+The kernel version was verified using the command:
+\begin{lstlisting}[language=bash]
+uname -r
+# Output: 6.14.0-35-generic
+\end{lstlisting}
+
+\subsubsection{Tools and Utilities Used}
+
+The following development tools were utilized:
+
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Compiler:} GCC (GNU Compiler Collection) version 13.3.0
+    \item \textbf{Build System:} GNU Make 4.3
+    \item \textbf{Kernel Headers:} linux-headers-6.14.0-35-generic
+    \item \textbf{Version Control:} Git 2.43.0
+    \item \textbf{Text Editor:} Visual Studio Code
+    \item \textbf{Documentation:} LaTeX for report generation
+\end{itemize}
+
+\subsubsection{Required Dependencies}
+
+Before building the project, the following packages must be installed:
+
+\begin{lstlisting}[language=bash]
+# Update package database
+sudo apt-get update
+
+# Install build essentials and kernel headers
+sudo apt-get install build-essential
+sudo apt-get install linux-headers-$(uname -r)
+\end{lstlisting}
+
+Verification of installed dependencies:
+\begin{lstlisting}[language=bash]
+# Verify GCC installation
+gcc --version
+
+# Verify kernel headers
+ls /lib/modules/$(uname -r)/build
+\end{lstlisting}
+
+\subsection{Compilation Instructions}
+
+\subsubsection{Building the Kernel Module}
+
+The kernel module is compiled using the standard kernel build system (kbuild):
+
+\begin{lstlisting}[language=bash]
+# Navigate to project directory
+cd /path/to/os-assignment2
+
+# Compile kernel module
+make
+\end{lstlisting}
+
+This generates the file \texttt{safe\_lkm.ko}, which is the compiled loadable kernel module.
+
+\subsubsection{Building Test Programs}
+
+The test programs are compiled using GCC:
+
+\begin{lstlisting}[language=bash]
+# Compile individual test programs
+gcc -o test_basic test_basic.c
+gcc -o test_stress test_stress.c
+gcc -o test_edge test_edge.c
+
+# Or use the provided script
+./compile_tests.sh
+\end{lstlisting}
+
+\subsection{Running the System}
+
+\subsubsection{Module Installation}
+
+\begin{lstlisting}[language=bash]
+# Load the kernel module
+sudo insmod safe_lkm.ko
+
+# Verify module is loaded
+lsmod | grep safe_lkm
+
+# Check kernel logs
+sudo dmesg | grep safe_lkm | tail -10
+\end{lstlisting}
+
+\subsubsection{Executing Tests}
+
+Run the three test programs in sequence:
+
+\begin{lstlisting}[language=bash]
+# Test 1: Basic functionality
+sudo ./test_basic
+
+# Test 2: Stress testing
+sudo ./test_stress
+
+# Test 3: Edge cases
+sudo ./test_edge
+\end{lstlisting}
+
+\subsubsection{Module Removal}
+
+After testing, unload the module:
+
+\begin{lstlisting}[language=bash]
+# Unload kernel module
+sudo rmmod safe_lkm
+
+# Verify clean removal
+sudo dmesg | grep safe_lkm | tail -5
+\end{lstlisting}
+
+\newpage
+
+\section{Implementation Summary}
+
+\subsection{Feature Selection}
+
+For this assignment, I implemented \textbf{Option B: Advanced Inter-Process Communication (IPC) Mechanism} with a priority-based message queue system. This option was selected because it provides practical experience with:
+
+\begin{itemize}[leftmargin=*]
+    \item Kernel-level data structure design
+    \item Thread synchronization mechanisms
+    \item User-kernel space communication
+    \item Dynamic memory management in kernel space
+\end{itemize}
+
+\subsection{High-Level Design}
+
+\subsubsection{Architecture Overview}
+
+The implementation consists of a loadable kernel module (LKM) that provides an IPC mechanism accessible through the \texttt{/proc} filesystem. The system uses dual-priority queues to manage messages:
+
+\begin{itemize}[leftmargin=*]
+    \item \textbf{High Priority Queue:} For messages with type $\geq$ 5
+    \item \textbf{Normal Priority Queue:} For messages with type $<$ 5
+\end{itemize}
+
+Messages are delivered in priority order, with FIFO ordering within each priority level.
+
+\subsubsection{Key Components}
+
+\textbf{1. Data Structures}
+
+Two primary structures were designed:
+
+\begin{lstlisting}[language=C]
+struct demo_msg {
+    pid_t pid;           // Process ID
+    int type;            // Message priority type
+    char text[256];      // Message content
+    struct list_head list; // Kernel list node
+};
+
+struct demo_msg_queue {
+    struct list_head high_priority;   // High priority list
+    struct list_head normal_priority; // Normal priority list
+    spinlock_t lock;                  // Synchronization lock
+};
+\end{lstlisting}
+
+\textbf{2. Core Operations}
+
+\begin{itemize}[leftmargin=*]
+    \item \texttt{demo\_send\_msg()}: Adds message to appropriate queue based on priority
+    \item \texttt{demo\_receive\_msg()}: Retrieves highest priority message (non-blocking)
+    \item \texttt{proc\_write()}: Handles user commands (S for send, R for receive)
+    \item \texttt{proc\_read()}: Displays queue status and statistics
+\end{itemize}
+
+\textbf{3. User Interface}
+
+The module creates \texttt{/proc/safe\_lkm} for user interaction:
+
+\begin{lstlisting}[language=bash]
+# Send message: S <pid> <type> <message>
+echo "S 1001 10 HighPriorityMessage" > /proc/safe_lkm
+
+# Receive message: R
+echo "R" > /proc/safe_lkm
+
+# View queue status
+cat /proc/safe_lkm
+\end{lstlisting}
+
+\subsection{Implementation Details}
+
+\subsubsection{Thread Safety}
+
+All queue operations are protected using spinlocks with interrupt safety:
+
+\begin{lstlisting}[language=C]
+unsigned long flags;
+spin_lock_irqsave(&msg_queue.lock, flags);
+// Critical section
+spin_unlock_irqrestore(&msg_queue.lock, flags);
+\end{lstlisting}
+
+This ensures safe concurrent access from multiple processes.
+
+\subsubsection{Memory Management}
+
+Dynamic memory allocation using kernel allocators:
+
+\begin{itemize}[leftmargin=*]
+    \item \texttt{kmalloc(GFP\_KERNEL)} for message allocation
+    \item \texttt{kfree()} for proper deallocation
+    \item Automatic cleanup on module unload prevents memory leaks
+\end{itemize}
+
+\subsubsection{Priority Logic}
+
+Messages are classified and queued based on type value:
+
+\begin{lstlisting}[language=C]
+if (msg->type >= 5) {
+    list_add_tail(&msg->list, 
+                  &msg_queue.high_priority);
+} else {
+    list_add_tail(&msg->list, 
+                  &msg_queue.normal_priority);
+}
+\end{lstlisting}
+
+Retrieval always checks high priority queue first:
+
+\begin{lstlisting}[language=C]
+if (!list_empty(&msg_queue.high_priority)) {
+    node = msg_queue.high_priority.next;
+} else if (!list_empty(&msg_queue.normal_priority)) {
+    node = msg_queue.normal_priority.next;
+}
+\end{lstlisting}
+
+\subsection{Testing Strategy}
+
+Three comprehensive test programs were developed:
+
+\begin{enumerate}[leftmargin=*]
+    \item \textbf{test\_basic.c}: Validates core functionality (6 tests)
+    \begin{itemize}
+        \item Send and receive operations
+        \item Priority ordering verification
+        \item Empty queue handling
+        \item Status reading
+    \end{itemize}
+    
+    \item \textbf{test\_stress.c}: Tests system under load (5 tests)
+    \begin{itemize}
+        \item Rapid send operations (100+ messages)
+        \item Rapid receive operations
+        \item Priority ordering under stress
+        \item Concurrent operations
+    \end{itemize}
+    
+    \item \textbf{test\_edge.c}: Validates error handling (9 tests)
+    \begin{itemize}
+        \item Invalid commands
+        \item Boundary conditions
+        \item Extreme priority values
+        \item Message truncation
+        \item Special characters
+    \end{itemize}
+\end{enumerate}
+
+\subsection{Challenges and Solutions}
+
+\subsubsection{Challenge 1: Thread Synchronization}
+
+\textbf{Problem:} Initial implementation had race conditions when multiple processes accessed the queue simultaneously.
+
+\textbf{Solution:} Implemented spinlocks with interrupt-safe operations (\texttt{spin\_lock\_irqsave}) to ensure atomic queue operations. All critical sections are now properly protected.
+
+\subsubsection{Challenge 2: User-Kernel Communication}
+
+\textbf{Problem:} Parsing user commands from \texttt{/proc} interface required careful buffer handling to prevent kernel crashes.
+
+\textbf{Solution:} Implemented robust input validation using \texttt{sscanf()} with format checking and buffer size limits. Added comprehensive error handling for malformed input.
+
+\subsubsection{Challenge 3: Memory Management}
+
+\textbf{Problem:} Memory leaks occurred when module was unloaded with pending messages in queues.
+
+\textbf{Solution:} Implemented cleanup function in \texttt{module\_exit()} that iterates through both queues and properly frees all allocated messages:
+
+\begin{lstlisting}[language=C]
+static void cleanup_queue(struct list_head *queue) {
+    struct demo_msg *msg, *tmp;
+    list_for_each_entry_safe(msg, tmp, queue, list) {
+        list_del(&msg->list);
+        kfree(msg);
+        msg_count++;
+    }
+}
+\end{lstlisting}
+
+\subsubsection{Challenge 4: Priority Queue Design}
+
+\textbf{Problem:} Deciding between a single sorted list versus dual separate queues for performance.
+
+\textbf{Solution:} Chose dual queue approach for O(1) insertion and O(1) retrieval of highest priority message, rather than O(n) insertion in a sorted list. This provides better performance under load.
+
+\subsubsection{Challenge 5: Testing Methodology}
+
+\textbf{Problem:} Ensuring comprehensive testing coverage for a kernel module.
+
+\textbf{Solution:} Developed three-tier testing strategy:
+\begin{itemize}
+    \item Basic functionality tests for correctness
+    \item Stress tests for performance and stability
+    \item Edge case tests for robustness
+\end{itemize}
+
+This approach caught several boundary condition bugs during development.
+
+\section{Conclusion}
+
+The implementation successfully demonstrates a working Advanced IPC mechanism with priority-based message queuing. The module is stable, thread-safe, and provides practical experience with kernel programming concepts including synchronization, memory management, and user-kernel communication.
+
+All test programs pass successfully, confirming correct implementation of the required functionality. The modular design allows for easy extension to support additional features such as message priorities, queue size limits, or blocking operations.
+
+\subsection{Learning Outcomes}
+
+This assignment provided hands-on experience with:
+\begin{itemize}[leftmargin=*]
+    \item Linux kernel module development
+    \item Kernel synchronization primitives (spinlocks)
+    \item Dynamic memory allocation in kernel space
+    \item /proc filesystem interface design
+    \item Comprehensive testing strategies for kernel code
+\end{itemize}
+
+\subsection{Repository Information}
+
+Complete source code, documentation, and test programs are available at:
+
+\url{https://github.com/wizz-ctrl/Ipc-priority-message-queue-}
+
+\end{document}
