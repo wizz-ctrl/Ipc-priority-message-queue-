@@ -1,4 +1,5 @@
-# Advanced IPC Priority Message Queue - Kernel Module# Advanced IPC Priority Message Queue - OS Assignment 2
+# Advanced IPC Priority Message Queue - Kernel Module
+
 
 
 
