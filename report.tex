@@ -51,8 +51,8 @@
     \vspace{1.5cm}
     
     {\large Course: Operating Systems\par}
-    {\large Institution: SEECS, NUST\par}
-    {\large Semester: Fall 2025\par}
+    {\large Class: BSCS-13\par}
+    {\large Section: E\par}
     \vspace{1cm}
     
     {\large Date: November 30, 2025\par}
@@ -96,8 +96,6 @@ The following development tools were utilized:
     \item \textbf{Build System:} GNU Make 4.3
     \item \textbf{Kernel Headers:} linux-headers-6.14.0-35-generic
     \item \textbf{Version Control:} Git 2.43.0
-    \item \textbf{Text Editor:} Visual Studio Code
-    \item \textbf{Documentation:} LaTeX for report generation
 \end{itemize}
 
 \subsubsection{Required Dependencies}
@@ -198,9 +196,45 @@ sudo dmesg | grep safe_lkm | tail -5
 
 \section{Implementation Summary}
 
+\subsection{Implementation Approach: Loadable Kernel Module (LKM)}
+
+\subsubsection{Reasoning for LKM Approach}
+
+For this assignment, we chose to implement the IPC mechanism as a \textbf{Loadable Kernel Module (LKM)} rather than modifying the kernel source code directly and recompiling the entire kernel. This approach was selected for several critical reasons:
+
+\textbf{1. Development Efficiency and Safety:}
+
+Modifying the kernel source code and recompiling the entire kernel is a time-intensive process that can take 30-60 minutes per compilation. Additionally, any errors in the code could render the entire system unbootable, requiring recovery procedures. LKMs allow us to develop, test, and debug iteratively without risking system stability.
+
+\textbf{2. Dynamic Loading and Unloading:}
+
+LKMs can be loaded into the running kernel using \texttt{insmod} and unloaded using \texttt{rmmod} without requiring a system reboot. This enables rapid testing cycles and immediate verification of code changes, which is essential for educational purposes and development workflows.
+
+\textbf{3. Equivalent Functionality:}
+
+Despite being external modules, LKMs operate with full kernel privileges and have complete access to kernel APIs, data structures, and hardware. Our IPC implementation using an LKM provides \textit{exactly the same functionality} as if it were compiled directly into the kernel. The module can:
+
+\begin{itemize}[leftmargin=*]
+    \item Access kernel memory space and use kernel allocators (\texttt{kmalloc}/\texttt{kfree})
+    \item Utilize kernel synchronization primitives (spinlocks, mutexes)
+    \item Create interfaces in \texttt{/proc} filesystem
+    \item Interact with process structures and scheduling
+    \item Perform all operations that built-in kernel code can perform
+\end{itemize}
+
+\textbf{4. Modularity and Maintainability:}
+
+LKMs promote modular design by keeping new functionality separate from the core kernel. This makes the code easier to maintain, update, and distribute. The module can be shared and tested on different systems without requiring each system to rebuild its kernel.
+
+\textbf{5. Educational and Production Use:}
+
+Many production systems use LKMs for device drivers, filesystem modules, and network protocols. This approach mirrors real-world kernel development practices, making our implementation both educationally valuable and practically relevant.
+
+\textbf{Conclusion:} The LKM approach serves the same purpose as kernel source modification while providing superior development agility, safety, and maintainability. Our implementation demonstrates that complex kernel features can be added dynamically without compromising functionality or performance.
+
 \subsection{Feature Selection}
 
-For this assignment, I implemented \textbf{Option B: Advanced Inter-Process Communication (IPC) Mechanism} with a priority-based message queue system. This option was selected because it provides practical experience with:
+For this assignment, we implemented \textbf{Option B: Advanced Inter-Process Communication (IPC) Mechanism} with a priority-based message queue system. This option was selected because it provides practical experience with:
 
 \begin{itemize}[leftmargin=*]
     \item Kernel-level data structure design
