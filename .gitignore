@@ -1,0 +1,34 @@
+# Compiled kernel module
+*.ko
+*.o
+*.mod
+*.mod.c
+*.symvers
+*.order
+.*.cmd
+.tmp_versions/
+Module.symvers
+modules.order
+
+# Compiled test programs
+test_basic
+test_edge
+test_stress
+
+# Editor and IDE files
+*~
+*.swp
+*.swo
+.vscode/
+.idea/
+
+# Temporary files
+*.tmp
+*.log
+
+# Keep source files only
+!*.c
+!*.h
+!Makefile
+!*.sh
+!*.md
